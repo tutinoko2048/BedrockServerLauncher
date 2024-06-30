@@ -5,20 +5,22 @@
   "scripts": {
     "dev": "bun run src/launcher/index.ts",
     "updater": "bun run src/updater/index.ts",
-    "build": "bun build src/index.ts --compile --outfile build/BedrockServerLauncher"
+    "build": "bun build src/launcher/index.ts --compile --outfile build/BedrockServerLauncher"
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/semver": "^7.5.8"
+    "@types/unzip-stream": "^0.3.4"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "dependencies": {
     "@types/progress": "^2.0.7",
+    "cli-select": "^1.1.2",
     "colors-cli": "^1.0.33",
     "compare-versions": "^6.1.0",
     "dayjs": "^1.11.11",
-    "progressbar": "^1.3.0"
+    "progressbar": "^1.3.0",
+    "unzip-stream": "^0.3.4"
   }
 }
