@@ -1,16 +1,33 @@
-import color from 'colors-cli/safe';
+import chalk from 'chalk';
 import dayjs from 'dayjs';
 
+export enum LogLevel {
+  Log = 'LOG',
+  Info = 'INFO',
+  Error = 'ERROR',
+  Warn = 'WARN',
+  Debug = 'DEBUG'
+}
+
 const colors = {
-  black: color.black,
-  red: color.red,
-  green: color.green,
-  yellow: color.yellow,
-  blue: color.blue,
-  magenta: color.magenta,
-  cyan: color.cyan,
-  white: color.white,
+  black: chalk.black,
+  red: chalk.red,
+  green: chalk.green,
+  yellow: chalk.yellow,
+  blueBright: chalk.blueBright,
+  blue: chalk.blue,
+  magenta: chalk.magenta,
+  cyan: chalk.cyan,
+  white: chalk.white,
 } as const;
+
+const logLevelColors = {
+  [LogLevel.Log]: colors.white,
+  [LogLevel.Info]: colors.white,
+  [LogLevel.Error]: colors.red,
+  [LogLevel.Warn]: colors.yellow,
+  [LogLevel.Debug]: colors.magenta
+}
 
 export class Logger {
   constructor(
@@ -18,27 +35,35 @@ export class Logger {
     private readonly color: keyof typeof colors = 'white'
   ) {}
 
-  info(message: string) {
-    const colorizedPrefix = colors[this.color](`[${this.prefix}]`);
-    const body = `[${dayjs().format('YYYY-MM-DD HH:mm:ss:SSS')} INFO] ${colorizedPrefix} ${message}`;
-    console.log(color.white(body));
+  log(...message: unknown[]) {
+    console.log(this.createMessage(LogLevel.Log, ...message));
   }
 
-  error(message: string) {
-    const colorizedPrefix = colors[this.color](`[${this.prefix}]`);
-    const body = `[${dayjs().format('YYYY-MM-DD HH:mm:ss:SSS')} ERROR] ${colorizedPrefix} ${message}`;
-    console.error(color.red(body));
+  info(...message: unknown[]) {
+    console.log(this.createMessage(LogLevel.Info, ...message));
   }
 
-  warn(message: string) {
-    const colorizedPrefix = colors[this.color](`[${this.prefix}]`);
-    const body = `[${dayjs().format('YYYY-MM-DD HH:mm:ss:SSS')} WARN] ${colorizedPrefix} ${message}`;
-    console.warn(color.yellow(body));
+  error(...message: unknown[]) {
+    console.log(this.createMessage(LogLevel.Error, ...message));
   }
 
-  debug(message: string) {
-    const colorizedPrefix = colors[this.color](`[${this.prefix}]`);
-    const body = `[${dayjs().format('YYYY-MM-DD HH:mm:ss:SSS')} DEBUG] ${colorizedPrefix} ${message}`;
-    console.log(color.cyan(body));
+  warn(...message: unknown[]) {
+    console.log(this.createMessage(LogLevel.Warn, ...message));
+
   }
+
+  debug(...message: unknown[]) {
+    console.log(this.createMessage(LogLevel.Debug, ...message));
+  }
+
+  private createMessage(level: LogLevel, ...message: unknown[]) {
+    const colorizedPrefix = colors[this.color](`[${this.prefix}]`);
+    return logLevelColors[level](
+      `[${dayjs().format('YYYY-MM-DD HH:mm:ss:SSS')} ${level}] ${colorizedPrefix} ${message.map(String).join(' ')}`
+    );
+  }
+}
+
+export namespace Logger {
+  export const Level = LogLevel;
 }
