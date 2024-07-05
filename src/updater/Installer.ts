@@ -4,14 +4,11 @@ import ProgressBar from 'progress';
 import { pipeline } from 'stream/promises';
 import { Transform } from 'stream';
 import * as unzip from 'unzip-stream';
-import { cacheFolder, serverArchive } from './CacheManager';
+import { cacheFolder } from './CacheManager';
 
 export class Installer {
   public static async install(version: string, isPreview: boolean = false): Promise<void> {
     const installer = new Installer();
-    if (fs.existsSync(serverArchive)) {
-      fs.unlinkSync(serverArchive);
-    }
     await installer.downloadAndExtractServer(version, isPreview);
   }
 

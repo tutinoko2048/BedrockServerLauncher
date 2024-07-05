@@ -3,11 +3,9 @@ import * as path from 'path';
 import { Logger } from '../utils/Logger';
 import { compare } from 'compare-versions';
 
-export const serverFolder = path.join(__dirname, '../bedrock_server');
-export const cacheFolder = path.join(__dirname, '../../.launcher-cache');
+export const serverFolder = path.join(process.cwd(), './bedrock_server');
+export const cacheFolder = path.join(process.cwd(), './.launcher-cache');
 export const cacheFile = path.join(cacheFolder, 'cache.json');
-export const serverArchive = path.join(cacheFolder, './bedrock-server.zip');
-
 
 const logger = new Logger('CacheManager', 'yellow');
 
