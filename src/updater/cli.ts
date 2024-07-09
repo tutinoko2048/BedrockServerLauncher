@@ -1,6 +1,6 @@
-import type { VersionEntry } from './types';
+import type { VersionInfo, VersionList } from './types';
 import cliSelect from 'cli-select';
-import color from 'colors-cli/safe';
+import chalk from 'chalk';
 import { askUntilValid } from '../utils/ask';
 
 export async function askLicense(): Promise<boolean> {
@@ -10,7 +10,7 @@ export async function askLicense(): Promise<boolean> {
     selected: '[x]',
     unselected: '[ ]',
     defaultValue: 1,
-    valueRenderer: (value, selected) => selected ? color.underline(value) : value,
+    valueRenderer: (value, selected) => selected ? chalk.underline(value) : value,
   });
   return res_.value === 'yes';
 }
@@ -20,7 +20,7 @@ export async function askSwitchVersion() {
     values: ['yes', 'no'],
     selected: '[x]',
     unselected: '[ ]',
-    valueRenderer: (value, selected) => selected ? color.underline(value) : value,
+    valueRenderer: (value, selected) => selected ? chalk.underline(value) : value,
   });
   return res.value === 'yes';
 }
@@ -32,13 +32,13 @@ const typeOptions = {
   "preview-select": "preview (select version)"
 }
 
-export async function askVersion(versionEntry: VersionEntry): Promise<{ version: string, isPreview: boolean }> {
+export async function askVersion(versionEntry: VersionList): Promise<VersionInfo> {
   console.log('install options:');
   const res = await cliSelect({
     values: typeOptions,
     selected: '[x]',
     unselected: '[ ]',
-    valueRenderer: (value, selected) => selected ? color.underline(value) : value,
+    valueRenderer: (value, selected) => selected ? chalk.underline(value) : value,
   });
   const selected = res.id;
   console.log(`-- ${selected}`);
@@ -70,7 +70,7 @@ async function selectVersion(versions: string[]) {
     values: options,
     selected: '[x]',
     unselected: '[ ]',
-    valueRenderer: (value, selected) => selected ? color.underline(value) : value,
+    valueRenderer: (value, selected) => selected ? chalk.underline(value) : value,
   });
   if (res.id === 'enter') {
     const answer = await askUntilValid({

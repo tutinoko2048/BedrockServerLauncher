@@ -50,8 +50,8 @@ class ServerUpdater {
   async switchVersion(versionInfo: VersionInfo, reason: SwitchVersionReason) {
     await this.checkLicense();
     await Installer.install(versionInfo);
-    this.cacheManager.setVersion(versionInfo.version);
     this.logger.info(`Successfully ${reason}: ${this.cacheManager.getVersion()} -> ${versionInfo.version}${versionInfo.isPreview?' (preview)':''}`);
+    this.cacheManager.setVersion(versionInfo.version);
   }
 
   async checkLicense() {
