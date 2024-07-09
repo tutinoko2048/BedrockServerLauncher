@@ -1,56 +1,80 @@
 import { Logger } from '../utils/Logger';
 import { CacheManager } from './CacheManager';
 import { Installer } from './Installer';
-import type { VersionList } from './types';
+import type { VersionList, ServerBuildInfo, VersionInfo } from './types';
 import { askSwitchVersion, askLicense, askVersion } from './cli';
 
-const logger = new Logger('Updater', 'yellow');
-logger.info('Starting server updater...');
+enum SwitchVersionReason {
+  Update = 'updated',
+  Switch = 'switched'
+}
 
-const cacheManager = new CacheManager();
+class ServerUpdater {
+  readonly cacheManager = new CacheManager();
+  readonly logger = new Logger('Updater', 'yellow');
 
-checkUpdate().catch((err) => {
-  logger.error(`Failed to update server: ${err}`);
-  console.error(err?.stack)
-  process.exit(1);
-});
+  versionList: VersionList | undefined;
+  
+  constructor() {
+    this.logger.info('Starting server updater...');    
+  }
 
-async function checkUpdate() {
-  const versionList = await fetchVersionList();
-  const os = process.platform === 'win32' ? 'windows' : 'linux';
-  const latestVersion = versionList[os].stable;
+  async run(): Promise<void> {
+    const { shouldUpdate, latestVersion } = await this.checkUpdate();
+    if (shouldUpdate) {
+      this.logger.info(`New version available: ${latestVersion}`);
+      await this.switchVersion({ version: latestVersion }, SwitchVersionReason.Update);
 
-  if (cacheManager.shouldUpdate(latestVersion)) {
-    logger.info(`New version available: ${latestVersion}`);
-
-    if (!cacheManager.getLicense()) {
-      const result = await askLicense();
-      if (!result) {
-        logger.error('You must agree to the Minecraft EULA to use the server');
-        process.exit(1);
+    } else {
+      this.logger.info('bedrock-server is up to date');
+      this.logger.info('Would you like to switch the version?');
+      if (await askSwitchVersion()) {
+        const versionInfo = await askVersion(this.versionList!);
+        this.logger.info(`Selected version: ${versionInfo.version}, isPreview: ${versionInfo.isPreview}`);
+        await this.switchVersion(versionInfo, SwitchVersionReason.Switch);
       }
-      cacheManager.setLicense(true);
     }
+  }
 
-    await Installer.install(latestVersion);
-    logger.info(`Successfully updated: ${cacheManager.getVersion()} -> ${latestVersion}`);
-    cacheManager.setVersion(latestVersion);
-  } else {
-    logger.info('bedrock-server is up to date');
-
-    logger.info('Would you like to switch the version?');
-    if (await askSwitchVersion()) {
-      const { version, isPreview } = await askVersion(versionList[os]);
-      logger.info(`Selected version: ${version}, isPreview: ${isPreview}`);
-      await Installer.install(version, isPreview);
-      logger.info(`Successfully switched: ${cacheManager.getVersion()} -> ${version}`);
-      cacheManager.setVersion(version);
+  async checkUpdate() {
+    const buildInfo = await this.fetchBuildInfo();
+    const os = process.platform === 'win32' ? 'windows' : 'linux';
+    this.versionList = buildInfo[os];
+    const latestVersion = this.versionList.stable;
+    return {
+      shouldUpdate: this.cacheManager.shouldUpdate(latestVersion),
+      latestVersion
     }
+  }
+
+  async switchVersion(versionInfo: VersionInfo, reason: SwitchVersionReason) {
+    await this.checkLicense();
+    await Installer.install(versionInfo);
+    this.cacheManager.setVersion(versionInfo.version);
+    this.logger.info(`Successfully ${reason}: ${this.cacheManager.getVersion()} -> ${versionInfo.version}${versionInfo.isPreview?' (preview)':''}`);
+  }
+
+  async checkLicense() {
+    if (this.cacheManager.getLicense()) return;
+    const result = await askLicense();
+    if (!result) {
+      this.logger.error('You must agree to the Minecraft EULA to use the server');
+      process.exit(1);
+    }
+    this.cacheManager.setLicense(true);
+  }
+
+  async fetchBuildInfo(): Promise<ServerBuildInfo> {
+    const res = await fetch('https://raw.githubusercontent.com/Bedrock-OSS/BDS-Versions/main/versions.json');
+    return await res.json() as ServerBuildInfo;
   }
 }
 
-async function fetchVersionList(): Promise<VersionList> {
-  const res = await fetch('https://raw.githubusercontent.com/Bedrock-OSS/BDS-Versions/main/versions.json');
-  const data = await res.json() as VersionList;
-  return data;
+const updater = new ServerUpdater();
+try {
+  await updater.run();
+} catch(err: any) {
+  updater.logger.error(`Failed to update server: ${err}`);
+  console.error(err?.stack)
+  process.exit(1);
 }
