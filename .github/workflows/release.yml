@@ -56,6 +56,8 @@ jobs:
 
       - name: Upload updater for Windows
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: build/bds-updater-windows.exe
@@ -67,6 +69,8 @@ jobs:
 
       - name: Upload updater for Linux
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: build/bds-updater-linux
