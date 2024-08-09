@@ -5,7 +5,7 @@ import { Transform } from 'stream';
 import * as unzip from 'unzip-stream';
 import * as fs from 'fs/promises';
 import { cacheFolder, serverFolder } from './CacheManager';
-import { serverPropertiesMerger, type MergeInfo } from './Merge';
+import { permissionsJsonMerger, serverPropertiesMerger, type MergeInfo } from './Merge';
 import type { VersionInfo } from './types';
 import { safeRename } from '../utils/fsExtra';
 
@@ -14,7 +14,7 @@ const KEEP_ITEMS: [string, MergeInfo][] = [
   ['permissions.json', {}],
   ['whitelist.json', {}],
   ['server.properties', serverPropertiesMerger],
-  ['config/default/permissions.json', {}] // TODO: merge array
+  ['config/default/permissions.json', permissionsJsonMerger] // TODO: merge array
 ];
 // normalize file paths
 KEEP_ITEMS.forEach(item => item[0] = path.normalize(item[0]));
