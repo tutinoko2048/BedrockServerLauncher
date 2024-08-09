@@ -6,7 +6,8 @@
     "dev": "bun run src/launcher/index.ts",
     "updater": "bun run src/updater/index.ts",
     "build-launcher": "bun build src/launcher/index.ts --compile --outfile build/BedrockServerLauncher",
-    "build-installer": "bun build src/updater/index.ts --compile --outfile build/BedrockServerInstaller"
+    "build-updater-windows": "bun build src/updater/index.ts --minify --compile --target=bun-windows-x64 --outfile build/bds-updater-windows",
+    "build-updater-linux": "bun build src/updater/index.ts --minify --compile --target=bun-linux-x64 --outfile build/bds-updater-linux"
   },
   "devDependencies": {
     "@types/bun": "latest",

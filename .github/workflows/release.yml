@@ -1,0 +1,66 @@
+name: Create Release
+
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Read package version
+        id: version
+        run: |
+          previous_version=$(git describe --tags --abbrev=0)
+          current_version=$(node -p -e "require('./package.json').version")
+          if [ "$previous_version" = "v$current_version" ]; then
+            echo "Error: Version has not changed since the last release."
+            exit 1
+          fi
+          echo "::set-output name=version::$current_version"
+
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          release_name: Release v${{ steps.version.outputs.version }}
+          draft: false
+          prerelease: false
+
+      - name: Build updater for Windows
+        run: npm run build-updater-windows
+
+      - name: Upload updater for Windows
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/bds-updater-windows.exe
+          asset_name: bds-updater-windows.exe
+          asset_content_type: application/octet-stream
+
+      - name: Build updater for Linux
+        run: npm run build-updater-linux
+
+      - name: Upload updater for Linux
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/bds-updater-linux
+          asset_name: bds-updater-linux
+          asset_content_type: application/octet-stream
