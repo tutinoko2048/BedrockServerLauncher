@@ -34,7 +34,7 @@ export abstract class BedrockDedicatedServer {
   async start(): Promise<void> {
     this.logger.log('Starting server at', chalk.blackBright(this.executable))
     this.process = ChildProcess.spawn(this.executable, {
-      cwd: path.join(process.cwd(), './bedrock_server'),
+      cwd: path.join(process.cwd(), './'),
       stdio: 'pipe',
     });
 

@@ -9,12 +9,8 @@ const logger = new Logger('Launcher', 'yellow');
 
 logger.info('Starting launcher...');
 
-if (!fs.existsSync(path.join(process.cwd(), './bedrock_server'))) {
-  fs.mkdirSync(path.join(process.cwd(), './bedrock_server'));
-}
-
 class VanillaBedrockDedicatedServer extends BedrockDedicatedServer {
-  executable = path.join(process.cwd(), './bedrock_server/bedrock_server.exe');
+  executable = path.join(process.cwd(), './bedrock_server.exe');
 }
 
 const server = new VanillaBedrockDedicatedServer();

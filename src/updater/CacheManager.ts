@@ -3,7 +3,7 @@ import * as path from 'path';
 import { Logger } from '../utils/Logger';
 import { compare } from 'compare-versions';
 
-export const serverFolder = path.join(process.cwd(), './bedrock_server');
+export const serverFolder = process.cwd();
 export const cacheFolder = path.join(process.cwd(), './.launcher-cache');
 export const cacheFile = path.join(cacheFolder, 'cache.json');
 
