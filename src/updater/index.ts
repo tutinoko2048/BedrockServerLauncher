@@ -3,6 +3,7 @@ import { CacheManager } from './CacheManager';
 import { Installer } from './Installer';
 import type { VersionList, ServerBuildInfo, VersionInfo } from './types';
 import { askSwitchVersion, askLicense, askVersion } from './cli';
+import { exit } from '../utils/util';
 
 enum SwitchVersionReason {
   Update = 'updated',
@@ -59,7 +60,7 @@ class ServerUpdater {
     const result = await askLicense();
     if (!result) {
       this.logger.error('You must agree to the Minecraft EULA to use the server');
-      process.exit(1);
+      exit(1);
     }
     this.cacheManager.setLicense(true);
   }
@@ -73,8 +74,9 @@ class ServerUpdater {
 const updater = new ServerUpdater();
 try {
   await updater.run();
+  exit();
 } catch(err: any) {
   updater.logger.error(`Failed to update server: ${err}`);
   console.error(err?.stack)
-  process.exit(1);
+  exit(1);
 }
