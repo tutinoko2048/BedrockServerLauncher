@@ -17,15 +17,13 @@ export class CacheManager {
       fs.mkdirSync(cacheFolder);
       logger.info('Created cache folder');
     }
-
-    this.load();
   }
 
   private save() {
     fs.writeFileSync(cacheFile, JSON.stringify(this.cache, null, 2), 'utf8');
   }
 
-  private load(): void {
+  public load(): void {
     if (!fs.existsSync(cacheFile)) {
       this.cache = {
         license: false,
@@ -33,7 +31,11 @@ export class CacheManager {
       };
       this.save();
     } else {
-      this.cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+      try {
+        this.cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+      } catch (error) {
+        throw new Error(`Failed to load cache file, try deleting .launcher-cache/cache.json`);
+      }
     }
   }
 

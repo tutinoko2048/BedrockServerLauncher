@@ -21,6 +21,8 @@ class ServerUpdater {
   }
 
   async run(): Promise<void> {
+    this.cacheManager.load();
+
     const { shouldUpdate, latestVersion } = await this.checkUpdate();
     if (shouldUpdate) {
       this.logger.info(`New version available: ${latestVersion}`);
@@ -55,13 +57,10 @@ class ServerUpdater {
     this.cacheManager.setVersion(versionInfo.version);
   }
 
-  async checkLicense() {
+  async checkLicense(): Promise<void> {
     if (this.cacheManager.getLicense()) return;
     const result = await askLicense();
-    if (!result) {
-      this.logger.error('You must agree to the Minecraft EULA to use the server');
-      exit(1);
-    }
+    if (!result) throw new Error('\nYou must agree to the Minecraft EULA to use the server');
     this.cacheManager.setLicense(true);
   }
 
@@ -71,12 +70,14 @@ class ServerUpdater {
   }
 }
 
+const isDebug = process.argv.includes('--debug');
+
 const updater = new ServerUpdater();
 try {
   await updater.run();
   exit();
 } catch(err: any) {
-  updater.logger.error(`Failed to update server: ${err}`);
-  console.error(err?.stack)
+  updater.logger.error(`Error: ${err.message}`);
+  if (isDebug) console.error(err?.stack);
   exit(1);
 }
