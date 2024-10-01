@@ -32,7 +32,7 @@ export class Installer {
 
   async downloadAndExtractServer(version: VersionInfo): Promise<void> {
     const platform = process.platform === 'win32' ? 'win' : 'linux';
-    const url = `https://minecraft.azureedge.net/bin-${platform}${version.isPreview?'-preview':''}/bedrock-server-${version.version}.zip`;
+    const url = `https://www.minecraft.net/bedrockdedicatedserver/bin-${platform}${version.isPreview?'-preview':''}/bedrock-server-${version.version}.zip`;
     const res = await fetch(url);
     if (!res.ok) {
       throw new Error(`Failed to fetch bedrock server: ${res.status} ${res.statusText}\n${url}`);
