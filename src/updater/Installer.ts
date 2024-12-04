@@ -14,7 +14,7 @@ const KEEP_ITEMS: [string, MergeInfo][] = [
   ['permissions.json', {}],
   ['whitelist.json', {}],
   ['server.properties', serverPropertiesMerger],
-  ['config/default/permissions.json', permissionsJsonMerger] // TODO: merge array
+  ['config/default/permissions.json', permissionsJsonMerger]
 ];
 // normalize file paths
 KEEP_ITEMS.forEach(item => item[0] = path.normalize(item[0]));
@@ -28,6 +28,13 @@ export class Installer {
     console.log('Downloading bedrock server: Done');
     await installer.updateFiles();
     console.log('Updating files: Done');
+
+    if (process.platform !== 'win32') {
+      const bedrockServer = path.join(serverFolder, 'bedrock_server');
+      const currentMode = (await fs.stat(bedrockServer)).mode;
+      await fs.chmod(bedrockServer, currentMode | fs.constants.S_IXUSR);
+      console.log('Added execute permission to bedrock_server');
+    }
   }
 
   async downloadAndExtractServer(version: VersionInfo): Promise<void> {
@@ -67,12 +74,13 @@ export class Installer {
 
   async scanDir(base: string, paths: string = '') {
     const basePath = path.join(base, paths);
+    const promises: Promise<void>[] = [];
     for (const item of await fs.readdir(basePath, { withFileTypes: true })) {
       const relPath = path.join(paths, item.name);
       const newPath = path.join(base, relPath)
       const ITEM = KEEP_ITEMS.find(([p]) => p.startsWith(relPath));
       // true: keep
-      let result: string | Buffer | true | undefined;
+      let result: true | undefined | Promise<string>;
       if (ITEM) {
         result = true;
         const info = ITEM[1];
@@ -80,7 +88,7 @@ export class Installer {
           this.scanDir(base, relPath);
           continue;
         } else {
-          if (info.onFile) result = await info.onFile(newPath)
+          if (info.onFile) result = info.onFile(newPath);
         }
       }
       const oldPath = path.join(serverFolder, paths, item.name);
@@ -88,16 +96,25 @@ export class Installer {
       const exists = await fs.exists(oldPath);
   
       if (result === undefined || !exists) { // replace
-        console.log('  REPLACE:', item.name);
-        await safeRename(newPath, oldPath);
+        promises.push(
+          safeRename(newPath, oldPath)
+            .then(() => console.log('  REPLACE:', item.name))
+            .catch(err => console.error(` ERROR: Failed to replace ${item.name}:`, err))
+        );
   
       } else if (result === true) { // keep
         console.log('  KEEP:', ITEM![0]);
   
       } else { // merge
-        console.log('  MERGE:', ITEM![0]);
-        await fs.writeFile(oldPath, result);
+        promises.push(
+          result
+            .then(value => fs.writeFile(oldPath, value))
+            .then(() => console.log('  MERGE:', ITEM![0]))
+            .catch(err => console.error(` ERROR: Failed to merge ${item.name}:`, err))
+        );
       }
     }
+
+    await Promise.all(promises);
   }
 }

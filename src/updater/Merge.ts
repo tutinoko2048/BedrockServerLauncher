@@ -4,7 +4,7 @@ import { jsonc } from 'jsonc';
 import { serverFolder } from './CacheManager';
 
 export interface MergeInfo {
-  onFile?: (path: string) => Promise<string | Buffer>;
+  onFile?: (path: string) => Promise<string>;
   //onDirectory?: (path: string) => Promise<boolean>;
 }
 
@@ -52,6 +52,6 @@ export const permissionsJsonMerger: MergeInfo = {
     const newPermissions: PermissionsJson = jsonc.parse(newPermissionsFile);
     const oldPermissions: PermissionsJson = jsonc.parse(oldPermissionsFile);
     const allowed_modules = [...new Set([...oldPermissions.allowed_modules, ...newPermissions.allowed_modules])];
-    return jsonc.stringify({ allowed_modules });
+    return jsonc.stringify({ allowed_modules }, { space: 2 });
   }
 }
