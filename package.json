@@ -1,6 +1,6 @@
 {
   "name": "bedrock-server-launcher",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "module": "src/index.ts",
   "type": "module",
   "scripts": {
