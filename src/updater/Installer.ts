@@ -7,7 +7,7 @@ import * as fs from 'fs/promises';
 import type { CacheManager } from './CacheManager';
 import { permissionsJsonMerger, serverPropertiesMerger, type MergeInfo } from './Merge';
 import type { VersionInfo } from './types';
-import { safeRename } from '../utils/fsExtra';
+import { safeCopy } from '../utils/fsExtra';
 
 const KEEP_ITEMS: [string, MergeInfo][] = [
   ['allowlist.json', {}],
@@ -23,13 +23,22 @@ export class Installer {
   constructor(private cacheManager: CacheManager) {}
 
   private get newServerFolder(): string {
-    return path.join(this.cacheManager.cacheFolder, './_bedrock_server');
+    return this.cacheManager.cachedServerFolder;
   }
 
   public static async install(version: VersionInfo, cacheManager: CacheManager): Promise<void> {
     const installer = new Installer(cacheManager);
-    await installer.downloadAndExtractServer(version);
-    console.log('Downloading bedrock server: Done');
+    
+    // Check if version is already cached
+    if (cacheManager.isVersionCached(version.version)) {
+      console.log(`Version ${version.version} is cached, skipping download`);
+    } else {
+      await installer.downloadAndExtractServer(version);
+      console.log('Downloading bedrock server: Done');
+      // Mark version as downloaded
+      cacheManager.markVersionDownloaded(version.version);
+    }
+    
     await installer.updateFiles();
     console.log('Updating files: Done');
 
@@ -39,6 +48,9 @@ export class Installer {
       await fs.chmod(bedrockServer, currentMode | fs.constants.S_IXUSR);
       console.log('Added execute permission to bedrock_server');
     }
+    
+    // Clear cache after successful installation
+    cacheManager.clearCache();
   }
 
   async downloadAndExtractServer(version: VersionInfo): Promise<void> {
@@ -79,9 +91,17 @@ export class Installer {
   async scanDir(base: string, paths: string = '') {
     const basePath = path.join(base, paths);
     const promises: Promise<void>[] = [];
+    const errors: string[] = [];
+    
     for (const item of await fs.readdir(basePath, { withFileTypes: true })) {
       const relPath = path.join(paths, item.name);
       const newPath = path.join(base, relPath)
+      
+      // Skip .VERSION file (used for cache management)
+      if (item.name === '.VERSION') {
+        continue;
+      }
+      
       const ITEM = KEEP_ITEMS.find(([p]) => p.startsWith(relPath));
       // true: keep
       let result: true | undefined | Promise<string>;
@@ -101,9 +121,13 @@ export class Installer {
   
       if (result === undefined || !exists) { // replace
         promises.push(
-          safeRename(newPath, oldPath)
+          safeCopy(newPath, oldPath)
             .then(() => console.log('  REPLACE:', item.name))
-            .catch(err => console.error(` ERROR: Failed to replace ${item.name}:`, err))
+            .catch((err: any) => {
+              const errorMsg = `Failed to replace ${item.name}: ${err.message}`;
+              console.error(` ERROR: ${errorMsg}`);
+              errors.push(errorMsg);
+            })
         );
   
       } else if (result === true) { // keep
@@ -114,11 +138,19 @@ export class Installer {
           result
             .then(value => fs.writeFile(oldPath, value))
             .then(() => console.log('  MERGE:', ITEM![0]))
-            .catch(err => console.error(` ERROR: Failed to merge ${item.name}:`, err))
+            .catch((err: any) => {
+              const errorMsg = `Failed to merge ${item.name}: ${err.message}`;
+              console.error(` ERROR: ${errorMsg}`);
+              errors.push(errorMsg);
+            })
         );
       }
     }
 
     await Promise.all(promises);
+    
+    if (errors.length > 0) {
+      throw new Error(`Failed to update files:\n${errors.join('\n')}`);
+    }
   }
 }

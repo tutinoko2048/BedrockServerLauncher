@@ -25,6 +25,14 @@ export class CacheManager {
     return path.join(this.cacheFolder, 'cache.json');
   }
 
+  get cachedServerFolder(): string {
+    return path.join(this.cacheFolder, '_bedrock_server');
+  }
+
+  get versionFile(): string {
+    return path.join(this.cachedServerFolder, '.VERSION');
+  }
+
   init(): void {
     if (!fs.existsSync(this.cacheFolder)) {
       fs.mkdirSync(this.cacheFolder);
@@ -72,6 +80,34 @@ export class CacheManager {
 
   public shouldUpdate(newVersion: string): boolean {
     return compare(newVersion, this.cache.version, '>');
+  }
+
+  public isVersionCached(version: string): boolean {
+    if (!fs.existsSync(this.versionFile)) {
+      return false;
+    }
+    try {
+      const cachedVersion = fs.readFileSync(this.versionFile, 'utf8').trim();
+      return cachedVersion === version;
+    } catch (error) {
+      logger.warn('Failed to read version file:', error);
+      return false;
+    }
+  }
+
+  public markVersionDownloaded(version: string): void {
+    if (!fs.existsSync(this.cachedServerFolder)) {
+      fs.mkdirSync(this.cachedServerFolder, { recursive: true });
+    }
+    fs.writeFileSync(this.versionFile, version, 'utf8');
+    logger.info(`Marked version ${version} as downloaded`);
+  }
+
+  public clearCache(): void {
+    if (fs.existsSync(this.cachedServerFolder)) {
+      fs.rmSync(this.cachedServerFolder, { recursive: true, force: true });
+      logger.debug('Cleared cached bedrock_server');
+    }
   }
 }
 
