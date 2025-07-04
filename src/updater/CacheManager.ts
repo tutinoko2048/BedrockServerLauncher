@@ -3,28 +3,41 @@ import * as path from 'path';
 import { Logger } from '../utils/Logger';
 import { compare } from 'compare-versions';
 
-export const serverFolder = process.cwd();
-export const cacheFolder = path.join(process.cwd(), './.launcher-cache');
-export const cacheFile = path.join(cacheFolder, 'cache.json');
-
 const logger = new Logger('CacheManager', 'yellow');
 
 export class CacheManager {
   public cache!: LauncherCache;
+  private readonly cwd: string;
 
-  constructor() {
-    if (!fs.existsSync(cacheFolder)) {
-      fs.mkdirSync(cacheFolder);
+  constructor(cwd: string = process.cwd()) {
+    this.cwd = path.resolve(cwd);
+  }
+
+  get serverFolder(): string {
+    return this.cwd;
+  }
+
+  get cacheFolder(): string {
+    return path.join(this.cwd, './.launcher-cache');
+  }
+
+  get cacheFile(): string {
+    return path.join(this.cacheFolder, 'cache.json');
+  }
+
+  init(): void {
+    if (!fs.existsSync(this.cacheFolder)) {
+      fs.mkdirSync(this.cacheFolder);
       logger.info('Created cache folder');
     }
   }
 
   private save() {
-    fs.writeFileSync(cacheFile, JSON.stringify(this.cache, null, 2), 'utf8');
+    fs.writeFileSync(this.cacheFile, JSON.stringify(this.cache, null, 2), 'utf8');
   }
 
   public load(): void {
-    if (!fs.existsSync(cacheFile)) {
+    if (!fs.existsSync(this.cacheFile)) {
       this.cache = {
         license: false,
         version: '0.0.0',
@@ -32,7 +45,7 @@ export class CacheManager {
       this.save();
     } else {
       try {
-        this.cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+        this.cache = JSON.parse(fs.readFileSync(this.cacheFile, 'utf8'));
       } catch (error) {
         throw new Error(`Failed to load cache file, try deleting .launcher-cache/cache.json`);
       }

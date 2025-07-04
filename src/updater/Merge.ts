@@ -1,15 +1,14 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { jsonc } from 'jsonc';
-import { serverFolder } from './CacheManager';
 
 export interface MergeInfo {
-  onFile?: (path: string) => Promise<string>;
+  onFile?: (newPath: string, serverFolder: string) => Promise<string>;
   //onDirectory?: (path: string) => Promise<boolean>;
 }
 
 export const serverPropertiesMerger: MergeInfo = {
-  async onFile(newPath) {
+  async onFile(newPath, serverFolder) {
     const newPropertiesFile = await fs.readFile(newPath, 'utf-8');
     let oldPropertiesFile = await fs.readFile(path.join(serverFolder, 'server.properties'), 'utf-8').catch(() => undefined);
     if (!oldPropertiesFile) return newPropertiesFile;
@@ -45,7 +44,7 @@ type PermissionsJson = {
 }
 
 export const permissionsJsonMerger: MergeInfo = {
-  async onFile(newPath) {
+  async onFile(newPath, serverFolder) {
     const newPermissionsFile = await fs.readFile(newPath, 'utf-8');
     let oldPermissionsFile = await fs.readFile(path.join(serverFolder, 'config/default/permissions.json'), 'utf-8').catch(() => undefined);
     if (!oldPermissionsFile) return newPermissionsFile;

@@ -2,8 +2,10 @@ import { Logger } from '../utils/Logger';
 import { CacheManager } from './CacheManager';
 import { Installer } from './Installer';
 import type { VersionList, ServerBuildInfo, VersionInfo } from './types';
-import { askSwitchVersion, askLicense, askVersion } from './cli';
+import { askSwitchVersion, askLicense, askVersion, parseCliArgs, printHelp } from './cli';
 import { exit } from '../utils/util';
+import * as fs from 'fs';
+import * as path from 'path';
 
 enum SwitchVersionReason {
   Update = 'updated',
@@ -11,16 +13,26 @@ enum SwitchVersionReason {
 }
 
 class ServerUpdater {
-  readonly cacheManager = new CacheManager();
   readonly logger = new Logger('Updater', 'yellow');
+  cacheManager!: CacheManager;
+  private readonly cwd: string;
 
   versionList: VersionList | undefined;
   
-  constructor() {
+  constructor(cwd: string) {
+    this.cwd = cwd;
     this.logger.info('Starting server updater...');    
   }
 
+  private init() {
+    if (!this.cacheManager) {
+      this.cacheManager = new CacheManager(this.cwd);
+      this.cacheManager.init();
+    }
+  }
+
   async run(): Promise<void> {
+    this.init();
     this.cacheManager.load();
 
     const { shouldUpdate, latestVersion } = await this.checkUpdate();
@@ -40,6 +52,7 @@ class ServerUpdater {
   }
 
   async checkUpdate() {
+    this.init();
     const buildInfo = await this.fetchBuildInfo();
     const os = process.platform === 'win32' ? 'windows' : 'linux';
     this.versionList = buildInfo[os];
@@ -51,13 +64,15 @@ class ServerUpdater {
   }
 
   async switchVersion(versionInfo: VersionInfo, reason: SwitchVersionReason) {
+    this.init();
     await this.checkLicense();
-    await Installer.install(versionInfo);
+    await Installer.install(versionInfo, this.cacheManager);
     this.logger.info(`Successfully ${reason}: ${this.cacheManager.getVersion()} -> ${versionInfo.version}${versionInfo.isPreview?' (preview)':''}`);
     this.cacheManager.setVersion(versionInfo.version);
   }
 
   async checkLicense(): Promise<void> {
+    this.init();
     if (this.cacheManager.getLicense()) return;
     const result = await askLicense();
     if (!result) throw new Error('\nYou must agree to the Minecraft EULA to use the server');
@@ -70,14 +85,28 @@ class ServerUpdater {
   }
 }
 
-const isDebug = process.argv.includes('--debug');
+const options = parseCliArgs();
 
-const updater = new ServerUpdater();
+// Show help and exit if requested
+if (options.help) {
+  printHelp();
+  process.exit(0);
+}
+
+// Set the working directory
+const resolvedCwd = path.resolve(options.cwd);
+if (!fs.existsSync(resolvedCwd)) {
+  console.error(`Error: Directory does not exist: ${resolvedCwd}`);
+  exit(1);
+}
+
+const updater = new ServerUpdater(resolvedCwd);
+updater.logger.info(`Working directory: ${resolvedCwd}`);
 try {
   await updater.run();
   exit();
 } catch(err: any) {
   updater.logger.error(`Error: ${err.message}`);
-  if (isDebug) console.error(err?.stack);
+  if (options.debug) console.error(err?.stack);
   exit(1);
 }

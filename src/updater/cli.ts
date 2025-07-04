@@ -3,6 +3,54 @@ import cliSelect from 'cli-select';
 import chalk from 'chalk';
 import { askUntilValid } from '../utils/ask';
 
+export interface UpdaterOptions {
+  cwd: string;
+  debug: boolean;
+  help: boolean;
+}
+
+export function printHelp(): void {
+  console.log('Bedrock Server Updater');
+  console.log('Usage: bds-updater [options]');
+  console.log('Options:');
+  console.log('  --cwd, -c <path>    Set the working directory (default: current directory)');
+  console.log('  --debug             Enable debug mode');
+  console.log('  --help, -h          Show this help message');
+  console.log('Examples:');
+  console.log('  bds-updater');
+  console.log('  bds-updater --cwd /path/to/server');
+  console.log('  bds-updater -c "C:\\MinecraftServer" --debug');
+}
+
+export function parseCliArgs(): UpdaterOptions {
+  const args = process.argv.slice(2);
+  let cwd = process.cwd();
+  let debug = false;
+  let help = false;
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    
+    if (arg === '--help' || arg === '-h') {
+      help = true;
+    } else if (arg === '--cwd' || arg === '-c') {
+      if (i + 1 < args.length) {
+        const cwdValue = args[i + 1];
+        if (cwdValue) {
+          cwd = cwdValue;
+        }
+        i++; // Skip next argument as it's the value for cwd
+      } else {
+        throw new Error('--cwd option requires a directory path');
+      }
+    } else if (arg === '--debug') {
+      debug = true;
+    }
+  }
+
+  return { cwd, debug, help };
+}
+
 export async function askLicense(): Promise<boolean> {
   console.log('Do you agree to the Minecraft EULA? (https://minecraft.net/eula)');
   const res_ = await cliSelect({

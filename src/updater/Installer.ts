@@ -4,7 +4,7 @@ import { pipeline } from 'stream/promises';
 import { Transform } from 'stream';
 import * as unzip from 'unzip-stream';
 import * as fs from 'fs/promises';
-import { cacheFolder, serverFolder } from './CacheManager';
+import type { CacheManager } from './CacheManager';
 import { permissionsJsonMerger, serverPropertiesMerger, type MergeInfo } from './Merge';
 import type { VersionInfo } from './types';
 import { safeRename } from '../utils/fsExtra';
@@ -19,18 +19,22 @@ const KEEP_ITEMS: [string, MergeInfo][] = [
 // normalize file paths
 KEEP_ITEMS.forEach(item => item[0] = path.normalize(item[0]));
 
-const newServerFolder = path.join(cacheFolder, './_bedrock_server');
-
 export class Installer {
-  public static async install(version: VersionInfo): Promise<void> {
-    const installer = new Installer();
+  constructor(private cacheManager: CacheManager) {}
+
+  private get newServerFolder(): string {
+    return path.join(this.cacheManager.cacheFolder, './_bedrock_server');
+  }
+
+  public static async install(version: VersionInfo, cacheManager: CacheManager): Promise<void> {
+    const installer = new Installer(cacheManager);
     await installer.downloadAndExtractServer(version);
     console.log('Downloading bedrock server: Done');
     await installer.updateFiles();
     console.log('Updating files: Done');
 
     if (process.platform !== 'win32') {
-      const bedrockServer = path.join(serverFolder, 'bedrock_server');
+      const bedrockServer = path.join(cacheManager.serverFolder, 'bedrock_server');
       const currentMode = (await fs.stat(bedrockServer)).mode;
       await fs.chmod(bedrockServer, currentMode | fs.constants.S_IXUSR);
       console.log('Added execute permission to bedrock_server');
@@ -59,7 +63,7 @@ export class Installer {
         callback(null, chunk);
       }
     });
-    const unzipStream = unzip.Extract({ path: newServerFolder });
+    const unzipStream = unzip.Extract({ path: this.newServerFolder });
     await pipeline(
       res.body!,
       progressStream,
@@ -69,7 +73,7 @@ export class Installer {
 
   async updateFiles() {
     console.log('Updating files...');
-    await this.scanDir(newServerFolder);
+    await this.scanDir(this.newServerFolder);
   }
 
   async scanDir(base: string, paths: string = '') {
@@ -88,10 +92,10 @@ export class Installer {
           this.scanDir(base, relPath);
           continue;
         } else {
-          if (info.onFile) result = info.onFile(newPath);
+          if (info.onFile) result = info.onFile(newPath, this.cacheManager.serverFolder);
         }
       }
-      const oldPath = path.join(serverFolder, paths, item.name);
+      const oldPath = path.join(this.cacheManager.serverFolder, paths, item.name);
       
       const exists = await fs.exists(oldPath);
   

@@ -174,24 +174,7 @@ dist
 # Finder (MacOS) folder config
 .DS_Store
 
-.launcher-cache
 build
-bedrock_server.exe
-bedrock_server.pdb
-behavior_packs
-development_behavior_packs
-resource_packs
-development_resource_packs
-development_skin_packs
-worlds
-world_templates
-config
-definitions
-allowlist.json
-whitelist.json
-permissions.json
-server.properties
-bedrock_server_how_to.html
-release-notes.txt
-valid_known_packs.json
-packet-statistics.txt
+
+test
+!test/README.md
