@@ -1,11 +1,11 @@
-import { Logger } from '../utils/Logger';
 import { CacheManager } from './CacheManager';
 import { Installer } from './Installer';
 import type { VersionList, ServerBuildInfo, VersionInfo } from './types';
-import { askSwitchVersion, askLicense, askVersion, parseCliArgs, printHelp } from './cli';
+import { askSwitchVersion, askUpgradeVersion, askLicense, askVersion, parseCliArgs, printHelp, createSpinner, formatSuccess, formatError, formatInfo, UpgradeChoice, SwitchChoice } from './cli';
 import { exit } from '../utils/util';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as pc from 'picocolors';
 
 enum SwitchVersionReason {
   Update = 'updated',
@@ -13,7 +13,6 @@ enum SwitchVersionReason {
 }
 
 class ServerUpdater {
-  readonly logger = new Logger('Updater', 'yellow');
   cacheManager!: CacheManager;
   private readonly cwd: string;
 
@@ -21,7 +20,7 @@ class ServerUpdater {
   
   constructor(cwd: string) {
     this.cwd = cwd;
-    this.logger.info('Starting server updater...');    
+    console.log(pc.dim(`- Working directory: ${cwd}`));
   }
 
   private init() {
@@ -35,18 +34,46 @@ class ServerUpdater {
     this.init();
     this.cacheManager.load();
 
+    console.log('');
+    const spinner = createSpinner('Checking for updates...');
+    spinner.start();
+    
     const { shouldUpdate, latestVersion } = await this.checkUpdate();
+    spinner.stop();
+    
     if (shouldUpdate) {
-      this.logger.info(`New version available: ${latestVersion}`);
-      await this.switchVersion({ version: latestVersion }, SwitchVersionReason.Update);
+      console.log(formatInfo(`New version available: ${pc.bold(latestVersion)}`));
+      console.log();
 
+      const choice = await askUpgradeVersion();
+      
+      switch (choice) {
+        case UpgradeChoice.Update:
+          await this.switchVersion({ version: latestVersion }, SwitchVersionReason.Update);
+          break;
+        case UpgradeChoice.Switch:
+          const versionInfo = await askVersion(this.versionList!);
+          console.log(formatInfo(`Selected: ${versionInfo.version}${versionInfo.isPreview ? ' (preview)' : ''}`));
+          await this.switchVersion(versionInfo, SwitchVersionReason.Switch);
+          break;
+        case UpgradeChoice.Nothing:
+          console.log(formatInfo('No changes made.'));
+          break;
+      }
     } else {
-      this.logger.info('bedrock-server is up to date');
-      this.logger.info('Would you like to switch the version?');
-      if (await askSwitchVersion()) {
-        const versionInfo = await askVersion(this.versionList!);
-        this.logger.info(`Selected version: ${versionInfo.version}, isPreview: ${versionInfo.isPreview}`);
-        await this.switchVersion(versionInfo, SwitchVersionReason.Switch);
+      console.log(`${formatSuccess('Bedrock server is up to date!')} ${pc.dim(`(${this.cacheManager.getVersion()})`)}`);
+      console.log();
+      const choice = await askSwitchVersion();
+      
+      switch (choice) {
+        case SwitchChoice.Switch:
+          const versionInfo = await askVersion(this.versionList!);
+          console.log(formatInfo(`Selected: ${versionInfo.version}${versionInfo.isPreview ? ' (preview)' : ''}`));
+          await this.switchVersion(versionInfo, SwitchVersionReason.Switch);
+          break;
+        case SwitchChoice.Nothing:
+          console.log(formatInfo('No changes made.'));
+          break;
       }
     }
   }
@@ -66,9 +93,17 @@ class ServerUpdater {
   async switchVersion(versionInfo: VersionInfo, reason: SwitchVersionReason) {
     this.init();
     await this.checkLicense();
+    
+    console.log('');
+    console.log(formatInfo(`Installing ${versionInfo.version}${versionInfo.isPreview ? ' (preview)' : ''}...`));
+    
     await Installer.install(versionInfo, this.cacheManager);
-    this.logger.info(`Successfully ${reason}: ${this.cacheManager.getVersion()} -> ${versionInfo.version}${versionInfo.isPreview?' (preview)':''}`);
+    
+    const oldVersion = this.cacheManager.getVersion();
     this.cacheManager.setVersion(versionInfo.version);
+    
+    console.log('');
+    console.log(formatSuccess(`Successfully ${reason}: ${pc.dim(oldVersion)} → ${pc.bold(versionInfo.version)}${versionInfo.isPreview ? pc.yellow(' (preview)') : ''}`));
   }
 
   async checkLicense(): Promise<void> {
@@ -81,6 +116,9 @@ class ServerUpdater {
 
   async fetchBuildInfo(): Promise<ServerBuildInfo> {
     const res = await fetch('https://raw.githubusercontent.com/Bedrock-OSS/BDS-Versions/main/versions.json');
+    if (!res.ok) {
+      throw new Error(`Failed to fetch version information: ${res.status} ${res.statusText}`);
+    }
     return await res.json() as ServerBuildInfo;
   }
 }
@@ -95,18 +133,29 @@ if (options.help) {
 
 // Set the working directory
 const resolvedCwd = path.resolve(options.cwd);
-if (!fs.existsSync(resolvedCwd)) {
-  console.error(`Error: Directory does not exist: ${resolvedCwd}`);
-  exit(1);
-}
+let hasError = false;
 
-const updater = new ServerUpdater(resolvedCwd);
-updater.logger.info(`Working directory: ${resolvedCwd}`);
-try {
-  await updater.run();
-  exit();
-} catch(err: any) {
-  updater.logger.error(`Error: ${err.message}`);
-  if (options.debug) console.error(err?.stack);
+console.log(pc.bold(pc.cyan('🚀 Bedrock Server Updater')));
+console.log('');
+
+if (!fs.existsSync(resolvedCwd)) {
+  console.error(formatError(`Directory does not exist: ${resolvedCwd}`));
+  hasError = true;
   exit(1);
+} else {
+  const updater = new ServerUpdater(resolvedCwd);
+  try {
+    await updater.run();
+    console.log('');
+    console.log(pc.green('🎉 All done!'));
+    exit();
+  } catch(err: any) {
+    console.error('');
+    console.error(formatError(err.message));
+    if (options.debug) {
+      console.error(pc.dim('\nStack trace:'));
+      console.error(pc.dim(err?.stack));
+    }
+    exit(1);
+  }
 }

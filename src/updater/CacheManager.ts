@@ -1,9 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Logger } from '../utils/Logger';
 import { compare } from 'compare-versions';
-
-const logger = new Logger('CacheManager', 'yellow');
+import * as pc from 'picocolors';
 
 export class CacheManager {
   public cache!: LauncherCache;
@@ -36,7 +34,7 @@ export class CacheManager {
   init(): void {
     if (!fs.existsSync(this.cacheFolder)) {
       fs.mkdirSync(this.cacheFolder);
-      logger.info('Created cache folder');
+      console.log(pc.dim('- Created cache folder'));
     }
   }
 
@@ -90,7 +88,7 @@ export class CacheManager {
       const cachedVersion = fs.readFileSync(this.versionFile, 'utf8').trim();
       return cachedVersion === version;
     } catch (error) {
-      logger.warn('Failed to read version file:', error);
+      console.warn(pc.yellow('Failed to read version file.\n'), error);
       return false;
     }
   }
@@ -100,13 +98,11 @@ export class CacheManager {
       fs.mkdirSync(this.cachedServerFolder, { recursive: true });
     }
     fs.writeFileSync(this.versionFile, version, 'utf8');
-    logger.info(`Marked version ${version} as downloaded`);
   }
 
   public clearCache(): void {
     if (fs.existsSync(this.cachedServerFolder)) {
       fs.rmSync(this.cachedServerFolder, { recursive: true, force: true });
-      logger.debug('Cleared cached bedrock_server');
     }
   }
 }

@@ -1,66 +1,41 @@
-import chalk from 'chalk';
-import dayjs from 'dayjs';
+import * as pc from 'picocolors';
 
-const c = {
-  black: chalk.black,
-  red: chalk.red,
-  green: chalk.green,
-  yellow: chalk.yellow,
-  blueBright: chalk.blueBright,
-  blue: chalk.blue,
-  magenta: chalk.magenta,
-  cyan: chalk.cyan,
-  white: chalk.white,
-  gray: chalk.gray,
-} as const;
+export function log(prefix: string, ...message: unknown[]) {
+  console.log(
+    pc.white(`[LOG]`),
+    pc.white(`[${prefix}]`),
+    pc.gray(message.map(String).join(' '))
+  );
+}
 
-export class Logger {
-  constructor(
-    private readonly prefix: string,
-    private readonly color: keyof typeof c = 'white'
-  ) {}
+export function info(prefix: string, ...message: unknown[]) {
+  console.info(
+    pc.white(`[INFO]`),
+    pc.white(`[${prefix}]`),
+    pc.white(message.map(String).join(' '))
+  );
+}
 
-  log(...message: unknown[]) {
-    console.log(
-      c.white(`[${this.date()} LOG]`),
-      c[this.color](`[${this.prefix}]`),
-      c.gray(message.map(String).join(' '))
-    );
-  }
+export function error(prefix: string, ...message: unknown[]) {
+  console.error(
+    pc.red(`[ERROR]`),
+    pc.white(`[${prefix}]`),
+    pc.red(message.map(String).join(' '))
+  );
+}
 
-  info(...message: unknown[]) {
-    console.info(
-      c.white(`[${this.date()} INFO]`),
-      c[this.color](`[${this.prefix}]`),
-      c.white(message.map(String).join(' '))
-    );
-  }
+export function warn(prefix: string, ...message: unknown[]) {
+  console.warn(
+    pc.yellow(`[WARN]`),
+    pc.white(`[${prefix}]`),
+    pc.yellow(message.map(String).join(' '))
+  );
+}
 
-  error(...message: unknown[]) {
-    console.error(
-      c.red(`[${this.date()} ERROR]`),
-      c[this.color](`[${this.prefix}]`),
-      c.red(message.map(String).join(' '))
-    );
-  }
-
-  warn(...message: unknown[]) {
-    console.warn(
-      c.yellow(`[${this.date()} WARN]`),
-      c[this.color](`[${this.prefix}]`),
-      c.yellow(message.map(String).join(' '))
-    );
-  }
-
-  debug(...message: unknown[]) {
-    console.debug(
-      c.magenta(`[${this.date()} DEBUG]`),
-      c[this.color](`[${this.prefix}]`),
-      c.gray(message.map(String).join(' '))
-    );
-  }
-
-  private date() {
-    return dayjs().format('YYYY-MM-DD HH:mm:ss:SSS');
-  }
+export function debug(prefix: string, ...message: unknown[]) {
+  console.debug(
+    pc.magenta(`[DEBUG]`),
+    pc.white(`[${prefix}]`),
+    pc.gray(message.map(String).join(' '))
+  );
 }

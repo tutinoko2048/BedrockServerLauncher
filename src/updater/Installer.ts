@@ -1,5 +1,4 @@
 import * as path from 'path';
-import ProgressBar from 'progress';
 import { pipeline } from 'stream/promises';
 import { Transform } from 'stream';
 import * as unzip from 'unzip-stream';
@@ -8,6 +7,9 @@ import type { CacheManager } from './CacheManager';
 import { permissionsJsonMerger, serverPropertiesMerger, type MergeInfo } from './Merge';
 import type { VersionInfo } from './types';
 import { safeCopy } from '../utils/fsExtra';
+import { createDownloadProgress } from './progress';
+import { FileProgressTracker } from './file-progress';
+import * as pc from 'picocolors';
 
 const KEEP_ITEMS: [string, MergeInfo][] = [
   ['allowlist.json', {}],
@@ -31,22 +33,23 @@ export class Installer {
     
     // Check if version is already cached
     if (cacheManager.isVersionCached(version.version)) {
-      console.log(`Version ${version.version} is cached, skipping download`);
+      console.log(pc.yellow(`📦 Using cached version: ${version.version}`));
     } else {
       await installer.downloadAndExtractServer(version);
-      console.log('Downloading bedrock server: Done');
+      console.log(pc.green('✅ Download completed'));
       // Mark version as downloaded
       cacheManager.markVersionDownloaded(version.version);
     }
     
+    console.log(pc.cyan('🔄 Updating server files...'));
     await installer.updateFiles();
-    console.log('Updating files: Done');
+    console.log(pc.green('✅ All files updated'));
 
     if (process.platform !== 'win32') {
       const bedrockServer = path.join(cacheManager.serverFolder, 'bedrock_server');
       const currentMode = (await fs.stat(bedrockServer)).mode;
       await fs.chmod(bedrockServer, currentMode | fs.constants.S_IXUSR);
-      console.log('Added execute permission to bedrock_server');
+      console.log(pc.blue('🔧 Added execute permission to bedrock_server'));
     }
     
     // Clear cache after successful installation
@@ -56,39 +59,46 @@ export class Installer {
   async downloadAndExtractServer(version: VersionInfo): Promise<void> {
     const platform = process.platform === 'win32' ? 'win' : 'linux';
     const url = `https://www.minecraft.net/bedrockdedicatedserver/bin-${platform}${version.isPreview?'-preview':''}/bedrock-server-${version.version}.zip`;
+
+    console.log(pc.gray(`URL: ${url}`));
+    console.log();
+
     const res = await fetch(url);
     if (!res.ok) {
       throw new Error(`Failed to fetch bedrock server: ${res.status} ${res.statusText}\n${url}`);
     }
   
     const totalBytes = Number(res.headers.get('content-length'));
-    const bar = new ProgressBar('Downloading bedrock server [:bar] :percent :etas', {
-      total: totalBytes,
-      width: 40,
-      incomplete: ' ',
-      complete: '#',
-    });
-
+    const progressBar = createDownloadProgress(totalBytes);
+    
+    let downloadedBytes = 0;
     const progressStream = new Transform({
       transform(chunk, _encoding, callback) {
-        bar.tick(chunk.length);
+        downloadedBytes += chunk.length;
+        progressBar.update(downloadedBytes);
         callback(null, chunk);
       }
     });
-    const unzipStream = unzip.Extract({ path: this.newServerFolder });
-    await pipeline(
-      res.body!,
-      progressStream,
-      unzipStream,
-    );
+
+    try {
+      const unzipStream = unzip.Extract({ path: this.newServerFolder });
+      await pipeline(
+        res.body!,
+        progressStream,
+        unzipStream,
+      );
+    } finally {
+      progressBar.stop();
+    }
   }
 
   async updateFiles() {
-    console.log('Updating files...');
-    await this.scanDir(this.newServerFolder);
+    const tracker = new FileProgressTracker();
+    await this.scanDir(this.newServerFolder, '', tracker);
+    tracker.finish();
   }
 
-  async scanDir(base: string, paths: string = '') {
+  async scanDir(base: string, paths: string = '', tracker: FileProgressTracker) {
     const basePath = path.join(base, paths);
     const promises: Promise<void>[] = [];
     const errors: string[] = [];
@@ -109,7 +119,7 @@ export class Installer {
         result = true;
         const info = ITEM[1];
         if (item.isDirectory()) {
-          this.scanDir(base, relPath);
+          this.scanDir(base, relPath, tracker);
           continue;
         } else {
           if (info.onFile) result = info.onFile(newPath, this.cacheManager.serverFolder);
@@ -118,31 +128,43 @@ export class Installer {
       const oldPath = path.join(this.cacheManager.serverFolder, paths, item.name);
       
       const exists = await fs.exists(oldPath);
-  
+
       if (result === undefined || !exists) { // replace
+        tracker.addItem(item.name, 'REPLACE');
         promises.push(
-          safeCopy(newPath, oldPath)
-            .then(() => console.log('  REPLACE:', item.name))
-            .catch((err: any) => {
+          (async () => {
+            tracker.startProcessing(item.name);
+            try {
+              await safeCopy(newPath, oldPath);
+              tracker.completeItem(item.name, 'REPLACE');
+            } catch (err: any) {
               const errorMsg = `Failed to replace ${item.name}: ${err.message}`;
-              console.error(` ERROR: ${errorMsg}`);
+              tracker.errorItem(item.name, errorMsg);
               errors.push(errorMsg);
-            })
+            }
+          })()
         );
-  
+
       } else if (result === true) { // keep
-        console.log('  KEEP:', ITEM![0]);
-  
+        tracker.addItem(ITEM![0], 'KEEP');
+        // KEEPは即座に完了
+        tracker.completeItem(ITEM![0], 'KEEP');
+
       } else { // merge
+        tracker.addItem(ITEM![0], 'MERGE');
         promises.push(
-          result
-            .then(value => fs.writeFile(oldPath, value))
-            .then(() => console.log('  MERGE:', ITEM![0]))
-            .catch((err: any) => {
+          (async () => {
+            tracker.startProcessing(ITEM![0]);
+            try {
+              const value = await result;
+              await fs.writeFile(oldPath, value);
+              tracker.completeItem(ITEM![0], 'MERGE');
+            } catch (err: any) {
               const errorMsg = `Failed to merge ${item.name}: ${err.message}`;
-              console.error(` ERROR: ${errorMsg}`);
+              tracker.errorItem(ITEM![0], errorMsg);
               errors.push(errorMsg);
-            })
+            }
+          })()
         );
       }
     }

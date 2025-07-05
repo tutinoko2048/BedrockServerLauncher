@@ -1,7 +1,7 @@
 import ChildProcess from 'node:child_process';
 import * as path from 'node:path';
 import chalk from 'chalk';
-import { Logger } from '../utils/Logger';
+import { Logger } from './Logger';
 import { StdioHandler } from './StdioHandler';
 
 export abstract class BedrockDedicatedServer {
@@ -21,7 +21,7 @@ export abstract class BedrockDedicatedServer {
       if (!this.process) return;
       if (this.stopExpires > Date.now()) return
       if (!this.alive) {
-        this.logger.warn('Server is dead, exit code is', this.process.exitCode, 'restarting...')
+        this.logger.warn('Server is dead, exit code is', this.process?.exitCode, 'restarting...')
         this.restart()
       }
     }, 3000);
