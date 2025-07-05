@@ -4,8 +4,8 @@
   "main": "src/index.ts",
   "scripts": {
     "test": "bun run src/index.ts --cwd ../../test",
-    "build:windows": "bun build src/updater/index.ts --minify --compile --target=bun-windows-x64 --outfile build/bds-updater-windows",
-    "build:linux": "bun build src/updater/index.ts --minify --compile --target=bun-linux-x64 --outfile build/bds-updater-linux"
+    "build:windows": "bun build src/index.ts --minify --compile --target=bun-windows-x64 --outfile build/bds-updater",
+    "build:linux": "bun build src/index.ts --minify --compile --target=bun-linux-x64 --outfile build/bds-updater"
   },
   "dependencies": {
     "@inquirer/prompts": "^7.6.0",
