@@ -2,7 +2,7 @@ import { CacheManager } from './CacheManager';
 import { Installer } from './Installer';
 import type { VersionList, ServerBuildInfo, VersionInfo } from './types';
 import { askSwitchVersion, askUpgradeVersion, askLicense, askVersion, parseCliArgs, printHelp, createSpinner, formatSuccess, formatError, formatInfo, UpgradeChoice, SwitchChoice } from './cli';
-import { exit } from '../utils/util';
+import { exit } from './utils/util';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as pc from 'picocolors';

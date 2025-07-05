@@ -92,16 +92,6 @@ export class FileProgressTracker {
     }
   }
 
-  private getStatusColor(status: string): (text: string) => string {
-    switch (status) {
-      case 'pending': return pc.dim;
-      case 'processing': return pc.cyan;
-      case 'completed': return pc.green;
-      case 'error': return pc.red;
-      default: return pc.white;
-    }
-  }
-
   private getTypeTag(type: 'REPLACE' | 'KEEP' | 'MERGE'): string {
     switch (type) {
       case 'REPLACE': return pc.inverse(pc.gray(' REPLACE '));

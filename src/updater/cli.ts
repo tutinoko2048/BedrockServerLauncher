@@ -1,7 +1,7 @@
-import type { VersionInfo, VersionList } from './types';
-import { input, select, confirm, search } from '@inquirer/prompts';
+import { select, confirm, search } from '@inquirer/prompts';
 import ora from 'ora';
 import * as pc from 'picocolors';
+import type { VersionInfo, VersionList } from './types';
 
 export interface UpdaterOptions {
   cwd: string;

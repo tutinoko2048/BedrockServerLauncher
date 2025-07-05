@@ -3,13 +3,13 @@ import { pipeline } from 'stream/promises';
 import { Transform } from 'stream';
 import * as unzip from 'unzip-stream';
 import * as fs from 'fs/promises';
+import * as pc from 'picocolors';
 import type { CacheManager } from './CacheManager';
 import { permissionsJsonMerger, serverPropertiesMerger, type MergeInfo } from './Merge';
 import type { VersionInfo } from './types';
-import { safeCopy } from '../utils/fsExtra';
+import { safeCopy } from './utils/fsExtra';
 import { createDownloadProgress } from './progress';
 import { FileProgressTracker } from './file-progress';
-import * as pc from 'picocolors';
 
 const KEEP_ITEMS: [string, MergeInfo][] = [
   ['allowlist.json', {}],
