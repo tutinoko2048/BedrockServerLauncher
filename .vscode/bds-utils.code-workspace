@@ -1,0 +1,16 @@
+{
+  "folders": [
+    {
+      "name": "Updater",
+      "path": "../packages/updater"
+    },
+    {
+      "name": "Launcher",
+      "path": "../packages/launcher"
+    },
+    {
+      "name": "Repository",
+      "path": "../"
+    }
+  ]
+}

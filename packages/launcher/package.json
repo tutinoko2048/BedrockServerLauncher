@@ -1,0 +1,12 @@
+{
+  "name": "@bds-utils/launcher",
+  "version": "0.4.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "bun run src/index.ts"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "dayjs": "^1.11.13"
+  }
+}

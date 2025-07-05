@@ -1,34 +1,17 @@
 {
-  "name": "bedrock-server-launcher",
-  "version": "0.4.0",
-  "module": "src/index.ts",
+  "name": "bds-utils",
+  "private": true,
+  "version": "0.0.0",
   "type": "module",
+  "workspaces": ["packages/*"],
   "scripts": {
-    "dev": "bun run src/launcher/index.ts",
-    "updater": "bun run src/updater/index.ts --cwd test",
-    "build-launcher": "bun build src/launcher/index.ts --compile --outfile build/BedrockServerLauncher",
-    "build-updater-windows": "bun build src/updater/index.ts --minify --compile --target=bun-windows-x64 --outfile build/bds-updater-windows",
-    "build-updater-linux": "bun build src/updater/index.ts --minify --compile --target=bun-linux-x64 --outfile build/bds-updater-linux"
+    "build:launcher": "bun build src/launcher/index.ts --compile --outfile build/BedrockServerLauncher",
+    "build:updater": "bun build src/updater/index.ts --compile --outfile build/bds-updater"
   },
   "devDependencies": {
-    "@types/bun": "latest",
-    "@types/fs-extra": "^11.0.4",
-    "@types/unzip-stream": "^0.3.4"
+    "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "@inquirer/prompts": "^7.6.0",
-    "@types/cli-progress": "^3.11.6",
-    "@types/progress": "^2.0.7",
-    "cli-progress": "^3.12.0",
-    "compare-versions": "^6.1.0",
-    "dayjs": "^1.11.11",
-    "fs-extra": "^11.3.0",
-    "jsonc": "^2.0.0",
-    "ora": "^8.2.0",
-    "picocolors": "^1.1.1",
-    "unzip-stream": "^0.3.4"
   }
 }

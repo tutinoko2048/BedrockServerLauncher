@@ -3,10 +3,26 @@
   "workspaces": {
     "": {
       "name": "bedrock-server-launcher",
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+      "peerDependencies": {
+        "typescript": "^5.0.0",
+      },
+    },
+    "packages/launcher": {
+      "name": "@bds-utils/launcher",
+      "version": "0.4.0",
+      "dependencies": {
+        "chalk": "^5.4.1",
+        "dayjs": "^1.11.13",
+      },
+    },
+    "packages/updater": {
+      "name": "@bds-utils/updater",
+      "version": "0.4.0",
       "dependencies": {
         "@inquirer/prompts": "^7.6.0",
-        "@types/cli-progress": "^3.11.6",
-        "@types/progress": "^2.0.7",
         "cli-progress": "^3.12.0",
         "compare-versions": "^6.1.0",
         "dayjs": "^1.11.11",
@@ -17,16 +33,18 @@
         "unzip-stream": "^0.3.4",
       },
       "devDependencies": {
-        "@types/bun": "latest",
+        "@types/cli-progress": "^3.11.6",
         "@types/fs-extra": "^11.0.4",
+        "@types/progress": "^2.0.7",
         "@types/unzip-stream": "^0.3.4",
-      },
-      "peerDependencies": {
-        "typescript": "^5.0.0",
       },
     },
   },
   "packages": {
+    "@bds-utils/launcher": ["@bds-utils/launcher@workspace:packages/launcher"],
+
+    "@bds-utils/updater": ["@bds-utils/updater@workspace:packages/updater"],
+
     "@inquirer/checkbox": ["@inquirer/checkbox@4.1.9", "", { "dependencies": { "@inquirer/core": "^10.1.14", "@inquirer/figures": "^1.0.12", "@inquirer/type": "^3.0.7", "ansi-escapes": "^4.3.2", "yoctocolors-cjs": "^2.1.2" }, "peerDependencies": { "@types/node": ">=18" }, "optionalPeers": ["@types/node"] }, "sha512-DBJBkzI5Wx4jFaYm221LHvAhpKYkhVS0k9plqHwaHhofGNxvYB7J3Bz8w+bFJ05zaMb0sZNHo4KdmENQFlNTuQ=="],
 
     "@inquirer/confirm": ["@inquirer/confirm@5.1.13", "", { "dependencies": { "@inquirer/core": "^10.1.14", "@inquirer/type": "^3.0.7" }, "peerDependencies": { "@types/node": ">=18" }, "optionalPeers": ["@types/node"] }, "sha512-EkCtvp67ICIVVzjsquUiVSd+V5HRGOGQfsqA4E4vMWhYnB7InUL0pa0TIWt1i+OfP16Gkds8CdIu6yGZwOM1Yw=="],
