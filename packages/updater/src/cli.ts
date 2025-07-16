@@ -1,57 +1,44 @@
 import { select, confirm, search } from '@inquirer/prompts';
+import { Command } from 'commander';
 import ora from 'ora';
 import * as pc from 'picocolors';
 import type { VersionInfo, VersionList } from './types';
+import packageJson from '../package.json';
 
 export interface UpdaterOptions {
   cwd: string;
   debug: boolean;
-  help: boolean;
 }
 
-export function printHelp(): void {
-  console.log(pc.bold(pc.cyan('🏗️  Bedrock Server Updater')));
-  console.log('');
-  console.log(pc.bold('Usage:') + ' bds-updater [options]');
-  console.log('');
-  console.log(pc.bold('Options:'));
-  console.log('  --cwd, -c <path>    Set the working directory (default: current directory)');
-  console.log('  --debug             Enable debug mode');
-  console.log('  --help, -h          Show this help message');
-  console.log('');
-  console.log(pc.bold('Examples:'));
-  console.log('  bds-updater');
-  console.log('  bds-updater --cwd /path/to/server');
-  console.log('  bds-updater -c "C:\\MinecraftServer" --debug');
+export function createProgram(): Command {
+  const program = new Command();
+  
+  program
+    .name('bds-updater')
+    .description(`🏗️   ${pc.bold(pc.cyan('Bedrock Server Updater'))} - Update and manage Minecraft Bedrock Dedicated Server`)
+    .version(packageJson.version, '-v --version')
+    .option('-c, --cwd <path>', 'Set the working directory', process.cwd())
+    .option('--debug', 'Enable debug mode', false)
+    .helpOption('-h, --help', 'Show this help message')
+    .addHelpText('after', [
+      `${pc.bold('Examples:')}`,
+      `  bds-updater`,
+      `  bds-updater --cwd /path/to/server`,
+      `  bds-updater -c "C:\\MinecraftServer" --debug`
+    ].join('\n'));
+
+  return program;
 }
 
 export function parseCliArgs(): UpdaterOptions {
-  const args = process.argv.slice(2);
-  let cwd = process.cwd();
-  let debug = false;
-  let help = false;
-
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-
-    if (arg === '--help' || arg === '-h') {
-      help = true;
-    } else if (arg === '--cwd' || arg === '-c') {
-      if (i + 1 < args.length) {
-        const cwdValue = args[i + 1];
-        if (cwdValue) {
-          cwd = cwdValue;
-        }
-        i++; // Skip next argument as it's the value for cwd
-      } else {
-        throw new Error('--cwd option requires a directory path');
-      }
-    } else if (arg === '--debug') {
-      debug = true;
-    }
-  }
-
-  return { cwd, debug, help };
+  const program = createProgram();
+  program.parse();
+  const options = program.opts();
+  
+  return {
+    cwd: options.cwd,
+    debug: options.debug
+  };
 }
 
 export async function askLicense(): Promise<boolean> {

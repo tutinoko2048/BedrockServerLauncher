@@ -60,7 +60,7 @@ export class Installer {
     const platform = process.platform === 'win32' ? 'win' : 'linux';
     const url = `https://www.minecraft.net/bedrockdedicatedserver/bin-${platform}${version.isPreview?'-preview':''}/bedrock-server-${version.version}.zip`;
 
-    console.log(pc.gray(`URL: ${url}`));
+    console.log(pc.dim(`URL: ${url}`));
     console.log();
 
     const res = await fetch(url);
