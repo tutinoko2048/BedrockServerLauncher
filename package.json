@@ -4,10 +4,6 @@
   "version": "0.0.0",
   "type": "module",
   "workspaces": ["packages/*"],
-  "scripts": {
-    "build:launcher": "bun build src/launcher/index.ts --compile --outfile build/BedrockServerLauncher",
-    "build:updater": "bun build src/updater/index.ts --compile --outfile build/bds-updater"
-  },
   "devDependencies": {
     "@types/bun": "latest"
   },
