@@ -76,7 +76,7 @@ export class CacheManager {
     this.save();
   }
 
-  public shouldUpdate(newVersion: string): boolean {
+  public updateAvailable(newVersion: string): boolean {
     return compare(newVersion, this.cache.version, '>');
   }
 

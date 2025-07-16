@@ -5,6 +5,10 @@
       "path": "../packages/updater"
     },
     {
+      "name": "Updater Executable",
+      "path": "../packages/updater-executable"
+    },
+    {
       "name": "Launcher",
       "path": "../packages/launcher"
     },

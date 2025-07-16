@@ -40,11 +40,20 @@
         "@types/unzip-stream": "^0.3.4",
       },
     },
+    "packages/updater-executable": {
+      "name": "@bds-utils/updater-executable",
+      "dependencies": {
+        "@bds-utils/updater": "workspace:*",
+        "picocolors": "^1.1.1",
+      },
+    },
   },
   "packages": {
     "@bds-utils/launcher": ["@bds-utils/launcher@workspace:packages/launcher"],
 
     "@bds-utils/updater": ["@bds-utils/updater@workspace:packages/updater"],
+
+    "@bds-utils/updater-executable": ["@bds-utils/updater-executable@workspace:packages/updater-executable"],
 
     "@inquirer/checkbox": ["@inquirer/checkbox@4.1.9", "", { "dependencies": { "@inquirer/core": "^10.1.14", "@inquirer/figures": "^1.0.12", "@inquirer/type": "^3.0.7", "ansi-escapes": "^4.3.2", "yoctocolors-cjs": "^2.1.2" }, "peerDependencies": { "@types/node": ">=18" }, "optionalPeers": ["@types/node"] }, "sha512-DBJBkzI5Wx4jFaYm221LHvAhpKYkhVS0k9plqHwaHhofGNxvYB7J3Bz8w+bFJ05zaMb0sZNHo4KdmENQFlNTuQ=="],
 

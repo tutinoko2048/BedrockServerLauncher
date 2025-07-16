@@ -18,7 +18,7 @@ const KEEP_ITEMS: [string, MergeInfo][] = [
   ['server.properties', serverPropertiesMerger],
   ['config/default/permissions.json', permissionsJsonMerger]
 ];
-// normalize file paths
+
 KEEP_ITEMS.forEach(item => item[0] = path.normalize(item[0]));
 
 export class Installer {
@@ -31,15 +31,15 @@ export class Installer {
   public static async install(version: VersionInfo, cacheManager: CacheManager): Promise<void> {
     const installer = new Installer(cacheManager);
     
-    // Check if version is already cached
     if (cacheManager.isVersionCached(version.version)) {
       console.log(pc.yellow(`📦 Using cached version: ${version.version}`));
     } else {
       await installer.downloadAndExtractServer(version);
       console.log(pc.green('✅ Download completed'));
-      // Mark version as downloaded
       cacheManager.markVersionDownloaded(version.version);
     }
+
+    console.log();
     
     console.log(pc.cyan('🔄 Updating server files...'));
     await installer.updateFiles();

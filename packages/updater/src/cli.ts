@@ -43,66 +43,45 @@ export function parseCliArgs(): UpdaterOptions {
 
 export async function askLicense(): Promise<boolean> {
   console.log('');
-  console.log(pc.yellow('📜 Minecraft End User License Agreement'));
-  console.log('By using Minecraft Bedrock Server, you agree to the EULA:');
-  console.log(pc.underline('https://minecraft.net/eula'));
+  console.log(pc.yellow('📜 To use Minecraft Bedrock Server, you must agree to the following.'));
+  console.log(`- Minecraft End User License Agreement (EULA): ${pc.underline('https://minecraft.net/eula')}`);
+  console.log(`- Microsoft Privacy Statement: ${pc.underline('https://go.microsoft.com/fwlink/?LinkId=521839')}`);
   console.log('');
 
   return await confirm({
-    message: 'Do you agree to the Minecraft EULA?',
+    message: 'Do you agree to the EULA and Privacy Statement?',
     default: false,
   });
 }
 
-export enum UpgradeChoice {
+export enum Action {
   Update = 'update',
   Switch = 'switch',
   Nothing = 'nothing',
 }
 
-export enum SwitchChoice {
-  Switch = 'switch',
-  Nothing = 'nothing',
-}
-
-export async function askUpgradeVersion(): Promise<UpgradeChoice> {
-  const choices = [
-    {
+export async function askAction(updateAvailable: boolean): Promise<Action> {
+  const choices: { name: string; value: Action; description: string }[] = [];
+  if (updateAvailable) {
+    choices.push({
       name: '🔄 Update to latest version',
-      value: UpgradeChoice.Update,
+      value: Action.Update,
       description: 'Download and install the latest version',
-    },
+    });
+  }
+
+  choices.push(
     {
       name: '🔁 Switch to different version',
-      value: UpgradeChoice.Switch,
+      value: Action.Switch,
       description: 'Choose a specific version to install',
     },
     {
       name: '❌ Do nothing',
-      value: UpgradeChoice.Nothing,
+      value: Action.Nothing,
       description: 'Keep current version and exit',
-    },
-  ];
-
-  return await select({
-    message: 'What would you like to do?',
-    choices,
-  });
-}
-
-export async function askSwitchVersion(): Promise<SwitchChoice> {
-  const choices = [
-    {
-      name: '🔁 Switch to different version',
-      value: SwitchChoice.Switch,
-      description: 'Choose a specific version to install',
-    },
-    {
-      name: '❌ Do nothing',
-      value: SwitchChoice.Nothing,
-      description: 'Keep current version and exit',
-    },
-  ];
+    }
+  );
 
   return await select({
     message: 'What would you like to do?',

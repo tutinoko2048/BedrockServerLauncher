@@ -1,11 +1,9 @@
 {
   "name": "@bds-utils/updater",
   "version": "0.4.0",
-  "main": "src/index.ts",
+  "main": "src/main.ts",
   "scripts": {
-    "test": "bun run src/index.ts --cwd ../../test",
-    "build:windows": "bun build src/index.ts --minify --compile --target=bun-windows-x64 --outfile build/bds-updater",
-    "build:linux": "bun build src/index.ts --minify --compile --target=bun-linux-x64 --outfile build/bds-updater"
+    "test": "bun run src/main.ts --cwd ../../test"
   },
   "dependencies": {
     "@inquirer/prompts": "^7.6.0",
