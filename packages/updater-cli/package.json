@@ -1,0 +1,28 @@
+{
+  "name": "bds-updater",
+  "version": "0.4.0",
+  "description": "Bedrock Dedicated Server updater CLI tool",
+  "type": "module",
+  "bin": {
+    "bds-updater": "./dist/main.js"
+  },
+  "scripts": {
+    "build": "bun build src/main.ts --outdir dist --target node --format esm",
+    "typecheck": "tsc --noEmit",
+    "dev": "bun src/main.ts",
+    "prepublishOnly": "npm run typecheck && npm run build"
+  },
+  "keywords": [
+    "minecraft",
+    "bedrock",
+    "server",
+    "bds",
+    "updater"
+  ],
+  "dependencies": {
+    "@bds-utils/updater-core": "workspace:*"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -2,7 +2,6 @@
   "name": "@bds-utils/updater-executable",
   "private": true,
   "scripts": {
-    "test": "bun run src/main.ts --cwd ../../test",
     "build:windows": "bun build src/main.ts --minify --compile --target=bun-windows-x64 --outfile build/bds-updater",
     "build:linux": "bun build src/main.ts --minify --compile --target=bun-linux-x64 --outfile build/bds-updater"
   },

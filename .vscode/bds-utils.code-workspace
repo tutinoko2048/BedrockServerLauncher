@@ -5,6 +5,10 @@
       "path": "../packages/updater-core"
     },
     {
+      "name": "Updater CLI",
+      "path": "../packages/updater-cli"
+    },
+    {
       "name": "Updater Executable",
       "path": "../packages/updater-executable"
     },

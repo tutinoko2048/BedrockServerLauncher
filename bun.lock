@@ -18,8 +18,18 @@
         "dayjs": "^1.11.13",
       },
     },
-    "packages/updater": {
-      "name": "@bds-utils/updater",
+    "packages/updater-cli": {
+      "name": "bds-updater",
+      "version": "1.0.0",
+      "bin": {
+        "bds-updater": "./dist/main.js",
+      },
+      "dependencies": {
+        "@bds-utils/updater-core": "workspace:*",
+      },
+    },
+    "packages/updater-core": {
+      "name": "@bds-utils/updater-core",
       "version": "0.4.0",
       "dependencies": {
         "@inquirer/prompts": "^7.6.0",
@@ -43,7 +53,7 @@
     "packages/updater-executable": {
       "name": "@bds-utils/updater-executable",
       "dependencies": {
-        "@bds-utils/updater": "workspace:*",
+        "@bds-utils/updater-core": "workspace:*",
         "picocolors": "^1.1.1",
       },
     },
@@ -51,7 +61,7 @@
   "packages": {
     "@bds-utils/launcher": ["@bds-utils/launcher@workspace:packages/launcher"],
 
-    "@bds-utils/updater": ["@bds-utils/updater@workspace:packages/updater"],
+    "@bds-utils/updater-core": ["@bds-utils/updater-core@workspace:packages/updater-core"],
 
     "@bds-utils/updater-executable": ["@bds-utils/updater-executable@workspace:packages/updater-executable"],
 
@@ -104,6 +114,8 @@
     "ansi-regex": ["ansi-regex@6.1.0", "", {}, "sha512-7HSX4QQb4CspciLpVFwyRe79O3xsIZDDLER21kERQ71oaPodF8jL725AgJMFAYbooIqolJoRLuM81SpeUkpkvA=="],
 
     "ansi-styles": ["ansi-styles@4.3.0", "", { "dependencies": { "color-convert": "^2.0.1" } }, "sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg=="],
+
+    "bds-updater": ["bds-updater@workspace:packages/updater-cli"],
 
     "binary": ["binary@0.3.0", "", { "dependencies": { "buffers": "~0.1.1", "chainsaw": "~0.1.0" } }, "sha512-D4H1y5KYwpJgK8wk1Cue5LLPgmwHKYSChkbspQg5JtVuR5ulGckxfR62H3AE9UDkdMC8yyXlqYihuz3Aqg2XZg=="],
 
