@@ -5,21 +5,29 @@ on:
     branches:
       - release
 
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
 jobs:
   create_release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org'
       
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
@@ -33,12 +41,17 @@ jobs:
         id: version
         run: |
           previous_version=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          current_version=$(node -p -e "require('./packages/updater/package.json').version")
+          current_version=$(node -p -e "require('./packages/updater-core/package.json').version")
           if [ "$previous_version" = "v$current_version" ]; then
             echo "Error: Version has not changed since the last release."
             exit 1
           fi
           echo "version=$current_version" >> $GITHUB_OUTPUT
+
+      - name: Publish bds-updater to NPM
+        run: |
+          cd packages/updater-cli
+          npm publish
 
       - name: Create release
         id: create_release

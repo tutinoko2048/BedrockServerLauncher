@@ -1,6 +1,5 @@
 {
   "name": "bds-updater",
-  "version": "0.4.0",
   "description": "Bedrock Dedicated Server updater CLI tool",
   "type": "module",
   "bin": {
@@ -10,7 +9,8 @@
     "build": "bun build src/main.ts --outdir dist --target node --format esm",
     "typecheck": "tsc --noEmit",
     "dev": "bun src/main.ts",
-    "prepublishOnly": "npm run typecheck && npm run build"
+    "sync-version": "node scripts/sync-version.js",
+    "prepublishOnly": "npm run sync-version && npm run typecheck && npm run build"
   },
   "keywords": [
     "minecraft",
