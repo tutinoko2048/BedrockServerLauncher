@@ -2,7 +2,7 @@
   "folders": [
     {
       "name": "Updater",
-      "path": "../packages/updater"
+      "path": "../packages/updater-core"
     },
     {
       "name": "Updater Executable",
