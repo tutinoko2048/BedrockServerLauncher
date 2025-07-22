@@ -48,11 +48,6 @@ jobs:
           fi
           echo "version=$current_version" >> $GITHUB_OUTPUT
 
-      - name: Publish bds-updater to NPM
-        run: |
-          cd packages/updater-cli
-          npm publish
-
       - name: Create release
         id: create_release
         uses: actions/create-release@v1
@@ -95,3 +90,8 @@ jobs:
           asset_path: packages/updater-executable/build/bds-updater-linux
           asset_name: bds-updater-linux
           asset_content_type: application/octet-stream
+
+      - name: Publish bds-updater to NPM
+        run: |
+          cd packages/updater-cli
+          npm publish

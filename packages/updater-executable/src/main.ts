@@ -1,4 +1,4 @@
-import { main } from '@bds-utils/updater'
+import { main } from '@bds-utils/updater-core';
 import pc from 'picocolors';
 
 function exit(code: number = 0) {
