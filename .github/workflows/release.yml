@@ -63,7 +63,6 @@ jobs:
         run: |
           cd packages/updater-executable
           npm run build:windows
-          mv build/bds-updater.exe build/bds-updater-windows.exe
 
       - name: Upload updater for Windows
         uses: actions/upload-release-asset@v1
@@ -79,7 +78,6 @@ jobs:
         run: |
           cd packages/updater-executable
           npm run build:linux
-          mv build/bds-updater build/bds-updater-linux
 
       - name: Upload updater for Linux
         uses: actions/upload-release-asset@v1
