@@ -63,6 +63,17 @@ jobs:
         run: |
           cd packages/updater-executable
           npm run build:windows
+          ls -la build/
+          chmod 644 build/bds-updater-windows.exe
+          ls -la build/
+      
+      - name: Build updater for Linux
+        run: |
+          cd packages/updater-executable
+          npm run build:linux
+          ls -la build/
+          chmod 644 build/bds-updater-linux
+          ls -la build/
 
       - name: Upload updater for Windows
         uses: actions/upload-release-asset@v1
@@ -73,11 +84,6 @@ jobs:
           asset_path: packages/updater-executable/build/bds-updater-windows.exe
           asset_name: bds-updater-windows.exe
           asset_content_type: application/octet-stream
-
-      - name: Build updater for Linux
-        run: |
-          cd packages/updater-executable
-          npm run build:linux
 
       - name: Upload updater for Linux
         uses: actions/upload-release-asset@v1
