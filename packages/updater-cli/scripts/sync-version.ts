@@ -11,7 +11,13 @@ const currentPackageJson = await currentPackageFile.json();
 // バージョンを更新
 currentPackageJson.version = corePackageJson.version;
 
+// devDependenciesの依存関係も完全一致バージョンに更新
+if (currentPackageJson.devDependencies?.['@bds-utils/updater-core']) {
+  currentPackageJson.devDependencies['@bds-utils/updater-core'] = corePackageJson.version;
+}
+
 // ファイルに書き戻し
 await currentPackageFile.write(JSON.stringify(currentPackageJson, null, 2) + '\n');
 
 console.log(`Version updated to ${corePackageJson.version}`);
+console.log(`Dev dependency pinned to exact version ${corePackageJson.version}`);
