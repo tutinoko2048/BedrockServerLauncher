@@ -9,8 +9,8 @@
     "build": "bun build src/main.ts --outdir dist --target node --format esm",
     "typecheck": "tsc --noEmit",
     "dev": "bun src/main.ts",
-    "sync-version": "node scripts/sync-version.cjs",
-    "prepublishOnly": "npm run sync-version && npm run typecheck && npm run build"
+    "sync-version": "bun scripts/sync-version.ts",
+    "prepublishOnly": "bun run typecheck && bun run build"
   },
   "keywords": [
     "minecraft",

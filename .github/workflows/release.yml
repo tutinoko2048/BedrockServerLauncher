@@ -63,17 +63,13 @@ jobs:
         run: |
           cd packages/updater-executable
           npm run build:windows
-          ls -la build/
           chmod 644 build/bds-updater-windows.exe
-          ls -la build/
       
       - name: Build updater for Linux
         run: |
           cd packages/updater-executable
           npm run build:linux
-          ls -la build/
           chmod 644 build/bds-updater-linux
-          ls -la build/
 
       - name: Upload updater for Windows
         uses: actions/upload-release-asset@v1
@@ -98,4 +94,5 @@ jobs:
       - name: Publish bds-updater to NPM
         run: |
           cd packages/updater-cli
-          npm publish
+          bun run sync-version
+          bun publish
