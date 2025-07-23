@@ -23,13 +23,13 @@
       "bin": {
         "bds-updater": "./dist/main.js",
       },
-      "dependencies": {
+      "devDependencies": {
         "@bds-utils/updater-core": "workspace:*",
       },
     },
     "packages/updater-core": {
       "name": "@bds-utils/updater-core",
-      "version": "1.0.6",
+      "version": "1.0.7",
       "dependencies": {
         "@inquirer/prompts": "^7.6.0",
         "cli-progress": "^3.12.0",

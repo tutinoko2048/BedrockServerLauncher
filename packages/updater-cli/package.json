@@ -25,7 +25,7 @@
     "url": "https://github.com/tutinoko2048/bds-utils.git",
     "directory": "packages/updater-cli"
   },
-  "dependencies": {
+  "devDependencies": {
     "@bds-utils/updater-core": "workspace:*"
   },
   "engines": {
