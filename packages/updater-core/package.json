@@ -1,6 +1,6 @@
 {
   "name": "@bds-utils/updater-core",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "main": "src/main.ts",
   "scripts": {
     "test": "bun run src/main.ts --cwd ../../test"
